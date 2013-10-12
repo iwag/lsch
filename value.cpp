@@ -3,15 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Value make_lambda( const Vlist& params, const Vlist& body ){
- 	Vlist	vl;
-	vl.push_back( Primitive::SYMBOL_LAMBDA ); 
-	vl.push_back( params ); 
-	vl.insert( vl.end(), body.begin(), body.end() );
-	return Value( vl );
- }
-
-
+static Value make_lambda( const Vlist& params, const Vlist& body );
 
 ostream& operator<<(ostream &os, const Value &v){
 	Vlist::iterator	i;
@@ -40,7 +32,7 @@ ostream& operator<<(ostream &os, const Value &v){
 	}
 }
 
-string Value::dump(){
+string Value::dump(void) const {
 	string	s;
 	
 		switch( type ){
@@ -53,7 +45,7 @@ string Value::dump(){
 			return sym;
 		case LIST:
 			s="[";
-			for (Vlist::iterator i=vlist.begin(); i!=vlist.end(); i++){
+			for (auto i=vlist.begin(); i!=vlist.end(); i++){
 				s = s+ " " + i->dump(); 
 			} 
 			return s+" ]";
@@ -86,7 +78,7 @@ GEN_IS_FUNC_LIST_SYM(is_definition, Primitive::SYMBOL_DEFINE)
 GEN_IS_FUNC_LIST_SYM(is_if, Primitive::SYMBOL_IF)
 
 
-Vlist Value::cond_clauses(){
+Vlist Value::cond_clauses() const {
 	/* cdr */
 	return Vlist(vlist.begin()+1, vlist.end());
 }
@@ -94,17 +86,17 @@ Vlist Value::cond_clauses(){
 /*
  * (if predicate consequent alternative)
  */
-Value Value::if_predicate(){
+Value Value::if_predicate() const {
 	return vlist.at(1);
 }
 
-Value Value::if_consequent(){
+Value Value::if_consequent() const {
 	return vlist.at(2);
 }
 
-Value Value::if_alternative(){
+Value Value::if_alternative() const {
 	if ( vlist.size() == 3 ) // no-else
-		return _V("false");
+		return Value(Primitive::SYMBOL_FALSE);
 	return vlist.at(3);
 }
 
@@ -112,19 +104,19 @@ Value Value::operatorr(void) const{
 	return vlist.at(0);
 }
 
-Vlist Value::operands(){
-	Vlist::iterator start=vlist.begin();
+Vlist Value::operands() const {
+	auto start=vlist.begin();
 	if ( start != vlist.end() ) start++;
 	return Vlist(start,vlist.end());
 }
 
-Vlist Value::procedure_parameters(){
+Vlist Value::procedure_parameters() const {
 	//assert( type==LIST )
 	//assert( tag==PROCEDURE )
 	return vlist.begin()->vlist;
 }
 
-Vlist Value::procedure_body(){
+Vlist Value::procedure_body()const{
 	//assert( type==LIST )
 	//assert( tag==PROCEDURE )
 	return Vlist(vlist.begin()+1, vlist.end());
@@ -138,16 +130,16 @@ Vlist Value::procedure_body(){
 	}
 	*/
 
-Vlist Value::lambda_parameters(){
+Vlist Value::lambda_parameters(void) const{
 	return vlist.at(1).vlist;
 }
 
-Vlist Value::lambda_body(){
+Vlist Value::lambda_body() const{
 	return Vlist(vlist.begin()+2,vlist.end());
 }
 
-Value Value::definition_variable(){
-	const Vlist::iterator second = vlist.begin()+1;
+Value Value::definition_variable() const{
+	const auto second = vlist.begin()+1;
 	if ( second->type == SYMBOL )
 		return *second;
 	else if ( second->type == LIST )
@@ -156,12 +148,12 @@ Value Value::definition_variable(){
 		return *second;
 }
 
-Value Value::definition_value(){
-	const Vlist::iterator	second=vlist.begin()+1;
+Value Value::definition_value(void) const{
+	const auto	second=vlist.begin()+1;
 	if ( second->type == SYMBOL ) {
 		return *(second+1);
 	} else if ( second->type == LIST ) {
-		const Vlist::iterator	second_second = second->vlist.begin()+1;
+		const auto	second_second = second->vlist.begin()+1;
 		Vlist	params = Vlist(second_second,second->vlist.end());
 		Vlist	body = Vlist(second+1,vlist.end());
 		return make_lambda( params, body );
@@ -170,15 +162,25 @@ Value Value::definition_value(){
 	}
 }
 
-Env Value::procedure_environment(){
+Env Value::procedure_environment(void) const{
 	return *env;
 }
 
-Value	Value::car(){
+Value Value::car(void) const{
 	return *vlist.begin();
 }
 
-Vlist	Value::cdr(){
+Vlist	Value::cdr(void) const{
 	return Vlist(vlist.begin()+1,vlist.end());
 }
+
+static Value make_lambda( const Vlist& params, const Vlist& body ){
+ 	Vlist	vl;
+	vl.push_back( Primitive::SYMBOL_LAMBDA ); 
+	vl.push_back( params ); 
+	vl.insert( vl.end(), body.begin(), body.end() );
+	return Value( vl );
+}
+
+
 

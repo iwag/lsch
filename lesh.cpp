@@ -1,18 +1,16 @@
 
 #include "lesh.hpp"
 
- Value eval( Value exp, Env& env );
- Value eval_sequence( Vlist exps, Env& env );
- Value apply( Value procedure ,Vlist argument );
- Vlist list_of_values( Vlist,Env  );
- Value apply_primitive_procedure( Value proc, Vlist arguments );
- Procedure make_procedure( Vlist params, Vlist body, Env *env );
- Value eval_definition( Value exp, Env& env );
- Value eval_if( Value exp, Env& env );
- Value cond_if( Value exp );
+static Value eval( const Value& exp, Env& env );
+static Value eval_sequence( const Vlist& exps, Env& env );
+static Value apply( const Value& exp, Env& env ) ;
+static Vlist list_of_values( const Vlist&,Env  );
+static Value apply_primitive_procedure( const Value& proc, const Vlist& arguments );
+static Procedure make_procedure( const Vlist& params, const Vlist& body, Env *env );
+static Value eval_definition( const Value& exp, Env& env );
+static Value eval_if( const Value& exp, Env& env );
 
-
-Value parser(istream& in);
+extern Value parser(istream& in);
 
 
 /**
@@ -21,10 +19,10 @@ Value parser(istream& in);
 int main(void){
 	// create empty environment
 	Env	env = Env();
-	// set primitive procedures
+
+	// define primitive values and functions
 	Primitive::define_variables(env);
 	
-	// define primitive values and functions
 
 	/**
 	 * eval loop
@@ -45,7 +43,7 @@ int main(void){
 /**
  * eval
  */
-Value eval( Value exp, Env& env ){
+static Value eval( const Value& exp, Env& env ){
 	Value	ret=Value("ooERRoo");
 	if ( exp.is_self_evaluating() )
 		// return *exp*
@@ -61,12 +59,15 @@ Value eval( Value exp, Env& env ){
 		ret = make_procedure( exp.lambda_parameters(), exp.lambda_body(), &env );
 	else if ( exp.is_application() )
 		// apply exp
-		ret = apply( eval( exp.operatorr(),env ), 
-			list_of_values( exp.operands(), env ) );
+		ret = apply( exp, env );
 	return ret;
 }
 
-Value apply( Value procedure ,Vlist argument ){
+static Value apply( const Value& exp, Env& env ) {
+		
+	const Value& procedure = eval(exp.operatorr(), env); 
+	const Vlist& argument = list_of_values( exp.operands(), env );
+
  	if ( procedure.is_primitive_procedure() ){
 		return apply_primitive_procedure( procedure, argument );
 	} else if ( procedure.is_compound_procedure() ){
@@ -78,7 +79,7 @@ Value apply( Value procedure ,Vlist argument ){
 	return Value("error-apply");
  }
 
-Vlist list_of_values( Vlist exps,Env env  ){
+static Vlist list_of_values( const Vlist& exps,Env env  ){
 	Vlist	var_list;
 	for ( auto itr=exps.begin(); itr!=exps.end(); itr++ ){
 		var_list.push_back( eval(*itr,env) );
@@ -87,59 +88,11 @@ Vlist list_of_values( Vlist exps,Env env  ){
 }
 
 
-Value apply_primitive_procedure( Value proc, Vlist arguments ){
- 	int	ret=-62370895;
-	Vlist::iterator	itr,j;
+static Value apply_primitive_procedure( const Value& proc, const Vlist& arguments ){
+	return Primitive::apply_procedure( proc.sym, arguments );
+}
 
- 	if ( proc.sym == "+" ){
-		ret=0;
-		for( auto itr=arguments.begin(); itr!=arguments.end(); itr++ ){
-			ret += itr->num;
-		}
-	} else if ( proc.sym == "-" ){
-		*(itr=arguments.begin());
-		ret = itr->num;
-		for( itr++; itr!=arguments.end(); itr++ ){
-			ret -= itr->num;
-		}
-	} else if ( proc.sym == "*" ){
-		ret=1;
-		for( itr=arguments.begin(); itr!=arguments.end(); itr++ ){
-			ret *= itr->num;
-		}
-	} else if ( proc.sym == "=" ){
-		itr=j=arguments.begin();
-		++itr;
-		//assert( j->type == NUM );
-		if ( itr->num == j->num ) 
-			return  "true";
-		else
-			return  "false";
-	} else if ( proc.sym == "null?" ){
-		Vlist::iterator first=arguments.begin();
-		if ( first->type == LIST && first->vlist.size()==0 )
-			return  "true";
-		else
-			return  "false";
-	} else if ( proc.sym == "list" ){
-		Vlist	vl;
-		vl=Vlist(arguments.begin(),arguments.end());
-		return vl;
-	} else if ( proc.sym == "car" ) {
-		if ( arguments.size() != 1 ) cerr << "err-argument" << endl;
-		Vlist::iterator first=arguments.begin();
-		return *(first->vlist.begin());
-	} else if ( proc.sym == "cdr" ) {
-		if ( arguments.size() != 1 ) cerr << "err-argument" << endl;
-		Vlist::iterator first=arguments.begin();
-		return Vlist(first->vlist.begin()+1,first->vlist.end());
-	} 
-
-
-	return Value(ret);
- }
-
- Procedure make_procedure( Vlist params, Vlist body, Env *e ){
+static Procedure make_procedure( const Vlist& params, const Vlist& body, Env *e ){
 	return Value( params,body,e );
  }
 
@@ -148,7 +101,7 @@ Value apply_primitive_procedure( Value proc, Vlist arguments ){
  * 	(define-variable (definition-variable exp)
  * 		(eval (definition-value exp) env) ))
  */
- Value eval_definition( Value exp, Env& env ){
+static Value eval_definition( const Value& exp, Env& env ){
  	env.define_variable( exp.definition_variable().sym,
 				eval( exp.definition_value(), env));
 	return Value("ok");
@@ -160,20 +113,19 @@ Value apply_primitive_procedure( Value proc, Vlist arguments ){
  * 		(eval (if-consequent exp) env)
  * 		(eval (if-alternative exp) env)))
  */
- Value eval_if( Value exp, Env& env ){
- 	if ( _V("true").sym==eval(exp.if_predicate(),env).sym ){
+static Value eval_if( const Value& exp, Env& env ){
+ 	if ( Primitive::SYMBOL_TRUE ==eval(exp.if_predicate(),env).sym ){
 		return eval( exp.if_consequent(),env);
 	} else {
 		return eval( exp.if_alternative(),env);
 	}
  }
 
- Value eval_sequence( Vlist exps, Env& env ){
- 	Vlist::iterator	it;
+static Value eval_sequence( const Vlist& exps, Env& env ){
 	Value	ret;
-	for ( it=exps.begin(); it!=exps.end(); it++ ){
+	for ( auto it=exps.begin(); it!=exps.end(); it++ ){
 		ret = eval( *it, env );
 	}
 	return ret;
- }
+}
 

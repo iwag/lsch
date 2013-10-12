@@ -57,7 +57,7 @@ public:
 	/** 
 	 * constructor for symbol 
 	 */
-	Value(string symbol_name) : tag(NONE), type(SYMBOL), 
+	Value(const string symbol_name) : tag(NONE), type(SYMBOL), 
 		num(0), sym(Symbol(symbol_name)), vlist() {
 	}
 
@@ -71,26 +71,26 @@ public:
 	/** 
 	 * constructor for tagged symbol 
 	 */
-	Value(string s, kTAG arg_tag) : tag(arg_tag), type(SYMBOL), num(0), sym(Symbol(s)), vlist() {
+	Value(const string s, kTAG arg_tag) : tag(arg_tag), type(SYMBOL), num(0), sym(Symbol(s)), vlist() {
 	}
 
 	/**
 	 * constructor for value list
 	 */
-	Value(Vlist vl) : tag(NONE), type(LIST), num(0), sym(""), vlist(vl) {
+	Value(const Vlist& vl) : tag(NONE), type(LIST), num(0), sym(""), vlist(vl) {
 	}
 
 
 	/**
 	 * constructor for tagged value list 
 	 */
-	Value( Vlist vl,kTAG arg_tag ) : tag(NONE), type(LIST), num(0), sym(""), vlist(vl) {
+	Value( const Vlist& vl,kTAG arg_tag ) : tag(NONE), type(LIST), num(0), sym(""), vlist(vl) {
 	}
 
 	/**
 	 * constructor for two values 
 	 */
-	Value( Value v1, Value v2 ) : tag(NONE), type(LIST), num(0), sym("") {
+	Value( const Value& v1, const Value& v2 ) : tag(NONE), type(LIST), num(0), sym("") {
 		vlist.push_back(v1);
 		vlist.push_back(v2);
 	}
@@ -98,7 +98,7 @@ public:
 	/**
 	 * constructor for three values 
 	 */
-	Value( Value v1, Value v2, Value v3 ) : tag(NONE), type(LIST), num(0), sym("") {
+	Value( const Value& v1, const Value& v2, const Value& v3 ) : tag(NONE), type(LIST), num(0), sym("") {
 		vlist.push_back(v1);
 		vlist.push_back(v2);
 		vlist.push_back(v3);
@@ -107,13 +107,13 @@ public:
 	/**
 	 * constructor for proceduere
 	 */
-	Value( Vlist params, Vlist body, Env* arg_env) : tag(PROCEDURE), type(LIST), num(0), sym("") {
+	Value( const Vlist& params, const Vlist& body, Env* arg_env) : tag(PROCEDURE), type(LIST), num(0), sym("") {
 		vlist.push_back(Value(params));
 		vlist.insert(vlist.end(), body.begin(), body.end() );
-		env = arg_env;
+		env = arg_env; // not copy
 	}
 
-	string dump(void);
+	string dump(void) const;
 	/**
 	 * is self evaluating ? (number)
 	 */
@@ -155,22 +155,22 @@ public:
 	bool is_if(void) const;
 
 	Value operatorr(void) const;
+	Vlist operands(void)const;
 
-	Vlist operands(void);
-	Vlist procedure_body();
-	Env procedure_environment();
-	Vlist procedure_parameters();
-	Vlist lambda_parameters();
-	vector<Value> lambda_body();
-	Value definition_variable();
-	Value definition_value();
-	Value if_predicate();
-	Value if_consequent();
-	Value if_alternative();
-	Vlist begin_action();
-	Vlist cond_clauses();
-	Value	car();
-	Vlist	cdr();
+	Vlist procedure_body(void) const ;
+	Env procedure_environment(void) const ;
+	Vlist procedure_parameters(void) const ;
+	Vlist lambda_parameters(void) const ;
+	vector<Value> lambda_body(void) const ;
+	Value definition_variable(void) const ;
+	Value definition_value(void) const ;
+	Value if_predicate(void) const ;
+	Value if_consequent(void) const ;
+	Value if_alternative(void) const ;
+	Vlist begin_action(void) const ;
+	Vlist cond_clauses(void) const ;
+	Value	car(void) const ;
+	Vlist	cdr(void) const ;
 	friend ostream& operator<<(ostream &os, const Value &v);
 
 private:
@@ -214,6 +214,7 @@ namespace Primitive {
 	const Symbol SYMBOL_IF = "if";
 
 	void define_variables(Env &env);
+	Value apply_procedure(const Symbol& sym, const Vlist& arguments);
 }
 
 

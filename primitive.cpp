@@ -14,6 +14,9 @@ const Symbol END_OF_FUNC_LIST = "__END_OF_FUNC_LIST__";
 
 typedef Value (*PrimitiveFuncp)(const Vlist&);
 
+/**
+ * symbol and function table
+ */
 const pair<Symbol, PrimitiveFuncp> func_table[] = {
 	make_pair(SYMBOL_PLUS, &apply_plus),
 	make_pair(SYMBOL_MINUS, &apply_minus),
@@ -33,6 +36,15 @@ void define_variables(Env &env) {
 	for ( auto i=0; func_table[i].first!=END_OF_FUNC_LIST; i++ ) {
 		env.define_variable( func_table[i].first, Value(func_table[i].first, PRIMITIVE));
 	}
+}
+
+Value apply_procedure(const Symbol& sym, const Vlist& arguments) {
+	for ( auto i=0; func_table[i].first!=END_OF_FUNC_LIST; i++ ) {
+		if ( func_table[i].first == sym ) {
+			return func_table[i].second(arguments);
+		}
+	}
+	return Value(SYMBOL_ERROR);
 }
 
 Value apply_plus(const Vlist& arguments) {
@@ -66,23 +78,21 @@ Value apply_equal(const Vlist& arguments) {
 		++itr;
 		//assert( j->type == NUM );
 		if ( itr->num == j->num ) 
-			return  "true";
+			return  Value(SYMBOL_TRUE);
 		else
-			return  "false";
+			return  Value(SYMBOL_FALSE);
 }
 
 Value apply_null(const Vlist& arguments) {
 		auto first=arguments.cbegin();
 		if ( first->type == LIST && first->vlist.size()==0 )
-			return  "true";
+			return  Value(SYMBOL_TRUE);
 		else
-			return  "false";
+			return  Value(SYMBOL_FALSE);
 }
 
 Value apply_list(const Vlist& arguments) {
-		Vlist	vl;
-		vl=Vlist(arguments.begin(),arguments.end());
-		return vl;
+		return Vlist(arguments.begin(),arguments.end());
 }
 
 Value apply_car(const Vlist& arguments) {
