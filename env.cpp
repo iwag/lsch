@@ -1,10 +1,23 @@
 #include "lesh.hpp"
 
-Value Env::lookup_variable_value(Value var){
-	list<Frame>::iterator	i;
-	for( i=frames.begin(); i!=frames.end(); i++ ){ // list
-		Frame	f = *i;
-		Frame::iterator	found = f.find(var.sym);//map
+static Frame make_frame( const Vlist& syms, const Vlist& vals ){
+	Frame	fr;
+
+	assert( syms.size() == vals.size() );
+
+	for ( auto si=syms.begin(), vi=vals.begin(); si!=syms.end(); si++,vi++ ){
+		fr.insert( make_pair(si->sym,*vi) );
+	}
+
+	return fr;
+}
+
+
+
+Value Env::lookup_variable_value(const Symbol& sym){
+	for( auto itr=frames.begin(); itr!=frames.end(); itr++ ){ // list
+		Frame	f = *itr;
+		auto	found = f.find(sym);//map
 		if( found != f.end() ){
 			return found->second;
 		}
@@ -13,20 +26,22 @@ Value Env::lookup_variable_value(Value var){
 	return Value("ooERRORoo");
 }
 
-Value Env::define_variable(string var,Value val){
-	list<Frame>::iterator	i;
-	for ( i=frames.begin(); i!=frames.end(); i++ ){ // list
-		Frame::iterator	found = i->find(var);//map
-		if ( found != i->end() ){ // found !!
-			i->erase( found );
+Value Env::define_variable(const Symbol& sym, const Value& val){
+
+	for ( auto itr=frames.begin(); itr!=frames.end(); itr++ ){ // list
+		auto	found = itr->find(sym);//map
+		if ( found != itr->end() ){ // found !!
+			itr->erase( found ); // unbind if found
 			break;
 		}
 	}
 
-	frames.begin()->insert( make_pair(var,val));
+	frames.begin()->insert( make_pair(sym,val));
 	return Value("ok");
 }
 
-void Env::extend_environment(Vlist syms, Vlist vals){
+void Env::extend_environment( const Vlist& syms, const Vlist& vals){
 	frames.push_front( make_frame( syms, vals ) );
 }
+
+

@@ -3,6 +3,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+Value make_lambda( const Vlist& params, const Vlist& body ){
+ 	Vlist	vl;
+	vl.push_back( Primitive::SYMBOL_LAMBDA ); 
+	vl.push_back( params ); 
+	vl.insert( vl.end(), body.begin(), body.end() );
+	return Value( vl );
+ }
+
+
+
 ostream& operator<<(ostream &os, const Value &v){
 	Vlist::iterator	i;
 	
@@ -55,37 +65,26 @@ string Value::dump(){
 		return string("");
 }
 
-bool Value::is_self_evaluating(){
-	return ( type==NUM );
-}
+#define GEN_IS_FUNC_TYPE(_f,_t) \
+bool Value::_f(void) const { return (type==_t); }  
 
-bool Value::is_variable(){
-	return ( type==SYMBOL );
-}
+GEN_IS_FUNC_TYPE(is_self_evaluating, NUM)
+GEN_IS_FUNC_TYPE(is_variable, SYMBOL)
+GEN_IS_FUNC_TYPE(is_application, LIST)
 
-bool Value::is_application(){
-	return ( type==LIST ); 
-}
+#define GEN_IS_FUNC_TAG(_f,_t) \
+bool Value::_f(void) const { return (tag==_t); }  
 
-bool Value::is_primitive_procedure(){
-	return ( tag==PRIMITIVE );
-}
+GEN_IS_FUNC_TAG(is_primitive_procedure, PRIMITIVE)
+GEN_IS_FUNC_TAG(is_compound_procedure, PROCEDURE)
 
-bool Value::is_compound_procedure(){
-	return  ( tag==PROCEDURE );
-}
+#define GEN_IS_FUNC_LIST_SYM(_f,_s) \
+bool Value::_f(void) const {return  ( type==LIST && vlist.begin()->sym==_s );} 
 
-bool Value::is_lambda(){
-	return  ( type==LIST && vlist.begin()->sym=="lambda" );
-}
+GEN_IS_FUNC_LIST_SYM(is_lambda, Primitive::SYMBOL_LAMBDA)
+GEN_IS_FUNC_LIST_SYM(is_definition, Primitive::SYMBOL_DEFINE)
+GEN_IS_FUNC_LIST_SYM(is_if, Primitive::SYMBOL_IF)
 
-bool Value::is_definition(){
-	return  ( type==LIST && vlist.begin()->sym=="define" );
-}
-
-bool Value::is_if(){
-	return  ( type==LIST && vlist.begin()->sym=="if" );
-}
 
 Vlist Value::cond_clauses(){
 	/* cdr */
@@ -109,7 +108,7 @@ Value Value::if_alternative(){
 	return vlist.at(3);
 }
 
-Value Value::operatorr(){
+Value Value::operatorr(void) const{
 	return vlist.at(0);
 }
 

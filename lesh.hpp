@@ -113,50 +113,50 @@ public:
 		env = arg_env;
 	}
 
-	string dump();
+	string dump(void);
 	/**
 	 * is self evaluating ? (number)
 	 */
-	bool is_self_evaluating();
+	bool is_self_evaluating(void) const;
 
 	/**
 	 * is variable ?
 	 */
-	bool is_variable();
+	bool is_variable(void) const;
 
 	/**
 	 * is things to apply ? (eg. compound of operator and operands)
 	 */
-	bool is_application();
+	bool is_application(void) const;
 
 	/**
 	 * is  primitive procedure ? (+ - ...)
 	 */
-	bool is_primitive_procedure();
+	bool is_primitive_procedure(void) const;
 
 	/**
 	 * is  compound procedure ? (lambda...)
 	 */
-	bool is_compound_procedure();
+	bool is_compound_procedure(void) const;
 
 	/**
 	 * is lambda ? (starts with "lambda")
 	 */
-	bool is_lambda();
+	bool is_lambda(void) const;
 
 	/**
 	 * is definition  ? (starts with "define")
 	 */ 
-	bool is_definition();
+	bool is_definition(void) const;
 
 	/**
 	 * is if statement ?
 	 */
-	bool is_if();
+	bool is_if(void) const;
 
-	Value operatorr();
+	Value operatorr(void) const;
 
-	Vlist operands();
+	Vlist operands(void);
 	Vlist procedure_body();
 	Env procedure_environment();
 	Vlist procedure_parameters();
@@ -184,17 +184,17 @@ private:
  */ 
 class Env{
 public:
-        list<Frame>     frames;
+    list<Frame>     frames;
 	Env(){
 		frames.push_back( Frame() );
 	}
-        Env(Frame fr){
-                frames.push_back(fr);
-        }
-        Value lookup_variable_value(Value var);
-        void extend_environment( Vlist params, Vlist  vals );
-        Value define_variable( Symbol var, Value val );
-        //int set_variable_value( string var, Value val );
+    Env(Frame fr){
+        frames.push_back(fr);
+    }
+
+	Value lookup_variable_value(const Symbol& sym);
+	Value define_variable(const Symbol& sym, const Value& val);
+	void extend_environment( const Vlist& syms, const Vlist& vals);
 };
 
 namespace Primitive {
@@ -209,22 +209,13 @@ namespace Primitive {
 	const Symbol SYMBOL_FALSE = "false";
 	const Symbol SYMBOL_TRUE = "true";
 	const Symbol SYMBOL_ERROR = "error";
+	const Symbol SYMBOL_LAMBDA = "lambda";
+	const Symbol SYMBOL_DEFINE = "define";
+	const Symbol SYMBOL_IF = "if";
 
 	void define_variables(Env &env);
 }
 
-
- Value eval( Value exp, Env& env );
- Value eval_sequence( Vlist exps, Env& env );
- Value apply( Value procedure ,Vlist argument );
- Vlist list_of_values( Vlist,Env  );
- Value apply_primitive_procedure( Value proc, Vlist arguments );
- Procedure make_procedure( Vlist params, Vlist body, Env *env );
- Value make_lambda( Vlist params,Vlist body );
- Frame make_frame( Vlist syms, Vlist vals );
- Value eval_definition( Value exp, Env& env );
- Value eval_if( Value exp, Env& env );
- Value cond_if( Value exp );
 
 
 #endif

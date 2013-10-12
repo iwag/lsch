@@ -1,18 +1,37 @@
 
 #include "lesh.hpp"
 
+ Value eval( Value exp, Env& env );
+ Value eval_sequence( Vlist exps, Env& env );
+ Value apply( Value procedure ,Vlist argument );
+ Vlist list_of_values( Vlist,Env  );
+ Value apply_primitive_procedure( Value proc, Vlist arguments );
+ Procedure make_procedure( Vlist params, Vlist body, Env *env );
+ Value eval_definition( Value exp, Env& env );
+ Value eval_if( Value exp, Env& env );
+ Value cond_if( Value exp );
+
+
 Value parser(istream& in);
-//Value parser(string::iterator s);
 
+
+/**
+ * main 
+ */
 int main(void){
+	// create empty environment
 	Env	env = Env();
-
+	// set primitive procedures
 	Primitive::define_variables(env);
 	
 	// define primitive values and functions
 
+	/**
+	 * eval loop
+	 */
 	while (1) {
 		Value	val =parser(cin);
+		// if istream is bad or eof then break
 		if ( !cin.good() ||  cin.eof() ) break;
 		cout << val.dump() << endl;
 		// eval val in current environment
@@ -23,6 +42,9 @@ int main(void){
 }
 
 
+/**
+ * eval
+ */
 Value eval( Value exp, Env& env ){
 	Value	ret=Value("ooERRoo");
 	if ( exp.is_self_evaluating() )
@@ -30,7 +52,7 @@ Value eval( Value exp, Env& env ){
 		ret = exp;
 	else if ( exp.is_variable() )
 		// return lookup variable in environment
-		ret = env.lookup_variable_value( exp );
+		ret = env.lookup_variable_value( exp.sym );
 	else if ( exp.is_if() )
 		ret = eval_if( exp,env );
 	else if ( exp.is_definition() )
@@ -119,27 +141,6 @@ Value apply_primitive_procedure( Value proc, Vlist arguments ){
 
  Procedure make_procedure( Vlist params, Vlist body, Env *e ){
 	return Value( params,body,e );
- }
-
- Value make_lambda( Vlist params,Vlist body ){
- 	Vlist	vl;
-	vl.push_back( "lambda" ); 
-	vl.push_back( params ); 
-	vl.insert( vl.end(), body.begin(), body.end() );
-	return Value( vl );
- }
-
-Frame make_frame( Vlist syms, Vlist vals ){
-	Frame	fr;
-	Vlist::iterator	si,vi;
-
-	assert( syms.size() == vals.size() );
-
-	for ( si=syms.begin(), vi=vals.begin(); si!=syms.end(); si++,vi++ ){
-		fr.insert( make_pair(si->sym,*vi) );
-	}
-
-	return fr;
  }
 
 /*
