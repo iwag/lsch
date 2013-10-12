@@ -197,6 +197,22 @@ public:
         //int set_variable_value( string var, Value val );
 };
 
+namespace Primitive {
+	const Symbol SYMBOL_PLUS = "+";
+	const Symbol SYMBOL_MINUS = "-";
+	const Symbol SYMBOL_MULTIPLY = "*";
+	const Symbol SYMBOL_EQUAL = "=";
+	const Symbol SYMBOL_NULL = "null?";
+	const Symbol SYMBOL_CAR = "car";
+	const Symbol SYMBOL_CDR = "cdr";
+	const Symbol SYMBOL_LIST = "list";
+	const Symbol SYMBOL_FALSE = "false";
+	const Symbol SYMBOL_TRUE = "true";
+	const Symbol SYMBOL_ERROR = "error";
+
+	void define_variables(Env &env);
+}
+
 
  Value eval( Value exp, Env& env );
  Value eval_sequence( Vlist exps, Env& env );

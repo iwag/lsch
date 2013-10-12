@@ -6,19 +6,10 @@ Value parser(istream& in);
 
 int main(void){
 	Env	env = Env();
+
+	Primitive::define_variables(env);
 	
 	// define primitive values and functions
-	env.define_variable( "true",_V("true") );
-	env.define_variable( "false",_V("false") );
-	env.define_variable( "+",_V("+",PRIMITIVE) );
-	env.define_variable( "-",_V("-",PRIMITIVE) );
-	env.define_variable( "*",_V("*",PRIMITIVE) );
-	env.define_variable( "=",_V("=",PRIMITIVE) );
-	env.define_variable( "list",_V("list",PRIMITIVE) );
-	env.define_variable( "car",_V("car",PRIMITIVE) );
-	env.define_variable( "cdr",_V("cdr",PRIMITIVE) );
-	env.define_variable( "null?",_V("null?",PRIMITIVE) );
-	env.define_variable( "cons",_V("cons",PRIMITIVE) );
 
 	while (1) {
 		Value	val =parser(cin);
@@ -66,9 +57,8 @@ Value apply( Value procedure ,Vlist argument ){
  }
 
 Vlist list_of_values( Vlist exps,Env env  ){
- 	Vlist::iterator	itr;
 	Vlist	var_list;
-	for ( itr=exps.begin(); itr!=exps.end(); itr++ ){
+	for ( auto itr=exps.begin(); itr!=exps.end(); itr++ ){
 		var_list.push_back( eval(*itr,env) );
 	}
 	return var_list;
@@ -78,9 +68,10 @@ Vlist list_of_values( Vlist exps,Env env  ){
 Value apply_primitive_procedure( Value proc, Vlist arguments ){
  	int	ret=-62370895;
 	Vlist::iterator	itr,j;
+
  	if ( proc.sym == "+" ){
 		ret=0;
-		for( itr=arguments.begin(); itr!=arguments.end(); itr++ ){
+		for( auto itr=arguments.begin(); itr!=arguments.end(); itr++ ){
 			ret += itr->num;
 		}
 	} else if ( proc.sym == "-" ){
@@ -120,14 +111,7 @@ Value apply_primitive_procedure( Value proc, Vlist arguments ){
 		if ( arguments.size() != 1 ) cerr << "err-argument" << endl;
 		Vlist::iterator first=arguments.begin();
 		return Vlist(first->vlist.begin()+1,first->vlist.end());
-	} else if ( proc.sym == "cons" ){
-		if ( arguments.size() != 2 ) cerr << "err-argument" << endl;
-		const Vlist::iterator first = arguments.begin();
-		const Vlist::iterator second= first+1;
-		Vlist	vl = second->vlist; // copy
-		vl.insert(vl.begin(),*first );
-		return vl;
-	}
+	} 
 
 
 	return Value(ret);
