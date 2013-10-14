@@ -73,7 +73,7 @@ Value apply_multiply(const Vlist& arguments) {
 } 
 
 Value apply_equal(const Vlist& arguments) {
-		auto itr=arguments.cbegin();
+		auto itr=arguments.begin();
 		auto j = itr;
 		++itr;
 		//assert( j->type == NUM );
@@ -84,7 +84,7 @@ Value apply_equal(const Vlist& arguments) {
 }
 
 Value apply_null(const Vlist& arguments) {
-		auto first=arguments.cbegin();
+		auto first=arguments.begin();
 		if ( first->type == LIST && first->vlist.size()==0 )
 			return  Value(SYMBOL_TRUE);
 		else
@@ -97,7 +97,7 @@ Value apply_list(const Vlist& arguments) {
 
 Value apply_car(const Vlist& arguments) {
 		if ( arguments.size() != 1 ) cerr << "err-argument" << endl;
-		auto first=arguments.cbegin();
+		auto first=arguments.begin();
 		return *(first->vlist.begin());
 }
 
